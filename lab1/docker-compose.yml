@@ -1,0 +1,10 @@
+services:
+  server:
+    build: ./server
+    volumes:
+      - ./server/data:/root/data
+  client:
+    build: ./client
+    depends_on:
+      - server
+
