@@ -1,6 +1,7 @@
 #include "chord.h"
 
 #include <iostream>
+#include <mutex>
 
 #include "rpc/client.h"
 #include "rpc/server.h"
@@ -41,11 +42,19 @@ int main(int argc, char *argv[]) {
     for (auto &p : periodics) {
       p.join();
     }
-    ready_to_exit = true;
+    {
+      std::lock_guard lk(mutex);
+      ready_to_exit = true;
+    }
+    // unlock before notify to avoid the waked up thread get blocked again
+    condvar.notify_one();
   });
 
-  while (!ready_to_exit)
-    ;
+  {
+    std::unique_lock lk(mutex);
+    condvar.wait(
+        lk, []() -> auto & { return ready_to_exit; });
+  }
 
   std::this_thread::sleep_until(std::chrono::steady_clock::now() +
                                 std::chrono::milliseconds(3000));

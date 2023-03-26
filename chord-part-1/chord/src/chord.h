@@ -2,8 +2,10 @@
 #define CHORD_H
 
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <iostream>
+#include <mutex>
 #include <thread>
 
 #include "rpc/client.h"
@@ -24,6 +26,8 @@ uint64_t hash(Node const &n) {
 
 std::vector<std::thread> periodics;
 std::atomic_bool terminated = false, ready_to_exit = false;
+std::mutex mutex;
+std::condition_variable condvar;
 uint64_t interval = 2000;
 
 void add_periodic(std::function<void(void)> func) {

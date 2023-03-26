@@ -4,3 +4,4 @@
 [submodule "chord-part-1/chord/subprojects/rpclib"]
 	path = chord-part-1/chord/subprojects/rpclib
 	url = https://github.com/rpclib/rpclib.git
+	branch = v2.3.0

@@ -14,11 +14,15 @@ def add_id(id):
 		ids.sort()
 
 def new_client(ip, port):
-	return msgpackrpc.Client(msgpackrpc.Address(ip, port))
+	return msgpackrpc.Client(msgpackrpc.Address(ip, port), timeout=2)
 
 def get_id(port):
 	client = new_client("127.0.0.1", port)
 	return client.call("get_info")[2]
+
+def get_neighbors(port):
+	client = new_client("127.0.0.1", port)
+	return client.call("get_neighbors")
 
 def create(port):
 	client = new_client("127.0.0.1", port)
@@ -66,6 +70,10 @@ def wait(t):
 	print("wait {} sec...".format(t))
 	time.sleep(t)
 
+def show_ring():
+	for i in range(5057, 5065):
+		print(f'neighbors of {i}:', get_neighbors(i))
+
 create(5057)
 wait(t)
 
@@ -75,6 +83,8 @@ join(5060, 5057)
 wait(t)
 join(5063, 5059)
 wait(10 * t)
+
+show_ring()
 
 stride = (1 << 32) // 128
 testcases = [3, 14, 35, 46, 65, 70, 73, 88, 91, 102, 112, 123]
@@ -94,6 +104,8 @@ join(5064, 5061)
 wait(t)
 join(5058, 5062)
 wait(t)
+
+show_ring()
 
 stride = (1 << 32) // 128
 testcases = [10, 8, 35, 73, 65, 112, 79, 90, 45, 61, 33, 100]
