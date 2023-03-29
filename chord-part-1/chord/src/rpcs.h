@@ -3,11 +3,12 @@
 
 #include "chord.h"
 
-#include "rpc/client.h"
-#include "rpc/rpc_error.h"
+#include <rpc/client.h>
+#include <rpc/rpc_error.h>
 
+#include <array>
+#include <chrono>
 #include <iostream>
-#include <tuple>
 #include <utility>
 
 #ifndef NDEBUG
@@ -29,19 +30,31 @@
 // {successor, predecessor}
 using NodePair = std::pair<Node, Node>;
 
+const size_t FINGER_TABLE_SIZE = 4;
+
 Node self, successor, predecessor;
+std::array<Node, FINGER_TABLE_SIZE> finger_table;
+size_t next_finger = 0;
 
 std::ostream &operator<<(std::ostream &os, const Node &n) {
   os << "Node(" << n.ip << ", " << n.port << ", " << n.id << ")";
   return os;
 }
 
+bool operator==(const Node &a, const Node &b) { return a.id == b.id; }
+
 // return if n (whose predecessor is pred) is the successor of id
-bool is_successor_of(const Node &n, uint64_t id, const Node &pred) {
+static inline bool is_successor_of(uint64_t n, uint64_t id, uint64_t pred) {
+  return n && id && pred &&
+         (pred == n                              // only one node
+          || (pred > n && (id > pred || id < n)) // last interval
+          || (pred < id && id <= n));
+}
+
+// return if n (whose predecessor is pred) is the successor of id
+static bool is_successor_of(const Node &n, uint64_t id, const Node &pred) {
   return id && !pred.ip.empty() && !n.ip.empty() &&
-         (pred.id == n.id                                    // only one node
-          || (pred.id > n.id && (id > pred.id || id < n.id)) // last interval
-          || (pred.id < id && id <= n.id));
+         is_successor_of(n.id, id, pred.id);
 }
 
 Node get_info() { return self; } // Do not modify this line.
@@ -76,6 +89,14 @@ void join(Node member) {
   }
 }
 
+static Node closest_preceding_node(uint64_t id) {
+  for (auto n = finger_table.crbegin(); n != finger_table.crend(); ++n) {
+    if (!n->ip.empty() && is_successor_of(id, n->id, self.id))
+      return *n;
+  }
+  return self; // TODO: return successor in this case?
+}
+
 Node find_successor(uint64_t id) {
   _LOG_DEBUG << self << ": find successor of " << id << std::endl;
 
@@ -86,7 +107,12 @@ Node find_successor(uint64_t id) {
   }
 
   try {
-    Node suc = rpc::client(successor.ip, successor.port)
+    Node closest = closest_preceding_node(id);
+    if (closest == self)
+      // avoid infinite recursion
+      return {};
+
+    Node suc = rpc::client(closest.ip, closest.port)
                    .call("find_successor", id)
                    .as<Node>();
 
@@ -154,6 +180,26 @@ void notify(Node sender) {
   }
 }
 
+// periodically refresh finger table entries
+// next_finger stores the index of the next finger to fix
+void fix_fingers() {
+  next_finger =
+      (next_finger + 1) & -(size_t)(next_finger != finger_table.size() - 1);
+
+  assert(next_finger < finger_table.size() && next_finger < 64);
+
+  _LOG_DEBUG << self << ": fix fingers[" << next_finger << "]" << std::endl;
+
+  Node suc = find_successor(self.id + (1 << next_finger));
+  if (!suc.ip.empty()) {
+    finger_table.at(next_finger) = suc;
+
+    _LOG_DEBUG << self << ": fix fingers[" << next_finger << "] = " << suc
+               << std::endl;
+  }
+}
+
+// periodically check aliveness of the predecessor
 void check_predecessor() {
   if (predecessor.ip.empty())
     return;
@@ -161,8 +207,7 @@ void check_predecessor() {
   _LOG_DEBUG << self << ": check predecessor" << std::endl;
 
   try {
-    rpc::client client(predecessor.ip, predecessor.port);
-    Node n = client.call("get_info").as<Node>();
+    rpc::client(predecessor.ip, predecessor.port).call("get_info");
 
   } catch (rpc::rpc_error &e) {
     predecessor.ip.clear();
@@ -172,19 +217,27 @@ void check_predecessor() {
   }
 }
 
+#ifndef NDEBUG
+int get_rpc_count() { return rpc_count; }
+#endif
+
 void register_rpcs() {
   add_rpc("get_info", &get_info); // Do not modify this line.
   add_rpc("get_neighbors", &get_neighbors);
   add_rpc("create", &create);
   add_rpc("join", &join);
   add_rpc("find_successor", &find_successor);
-  add_rpc("stabilize", &stabilize);
   add_rpc("notify", &notify);
+
+#ifndef NDEBUG
+  add_rpc("get_rpc_count", &get_rpc_count);
+#endif
 }
 
 void register_periodics() {
   add_periodic(check_predecessor);
   add_periodic(stabilize);
+  add_periodic(fix_fingers);
 }
 
 #endif /* RPCS_H */

@@ -1,15 +1,13 @@
 #ifndef CHORD_H
 #define CHORD_H
 
+#include <rpc/server.h>
+
 #include <chrono>
 #include <condition_variable>
 #include <functional>
-#include <iostream>
 #include <mutex>
 #include <thread>
-
-#include "rpc/client.h"
-#include "rpc/server.h"
 
 struct Node {
   std::string ip;
@@ -25,13 +23,14 @@ uint64_t hash(Node const &n) {
 }
 
 std::vector<std::thread> periodics;
-std::atomic_bool terminated = false, ready_to_exit = false;
+std::atomic_bool terminated{false}, ready_to_exit{false};
+std::atomic_int64_t rpc_count{0};
 std::mutex mutex;
 std::condition_variable condvar;
 uint64_t interval = 2000;
 
-void add_periodic(std::function<void(void)> func) {
-  periodics.emplace_back([func]() {
+template <typename F> void add_periodic(F func) {
+  periodics.emplace_back([func = func]() {
     while (true) {
       if (terminated) {
         terminated = false;
@@ -47,9 +46,17 @@ void add_periodic(std::function<void(void)> func) {
 
 std::unique_ptr<rpc::server> server_p;
 
-template <typename F>
-void add_rpc(std::string const &name, F func) {
-  server_p->bind(name, func);
+// for func being a lambda closure
+template <typename F> void add_rpc(std::string const &name, F func) {
+  add_rpc(name, &F::operator());
+}
+
+template <typename R, typename... Args>
+void add_rpc(std::string const &name, R (*func)(Args...)) {
+  server_p->bind(name, [func = func](Args... args) {
+    rpc_count++;
+    return func(std::forward<Args...>(args)...);
+  });
 }
 
 #endif /* CHORD_H */

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import random
 import msgpackrpc
 import time
 import sys
@@ -73,34 +74,26 @@ def wait(t):
 	time.sleep(t)
 
 def show_ring():
-	for i in range(5057, 5065):
+	for i in range(5057, 5073):
 		print(f'neighbors of {i}:', get_neighbors(i))
+
+def get_system_rpc_count():
+	res = 0
+	for port in range(5057, 5073):
+		res += new_client("127.0.0.1", port).call("get_rpc_count")
+	return res
 
 # unbuffered
 sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
 
 create(5057)
 wait(t)
-
 join(5059, 5057)
 wait(t)
 join(5060, 5057)
 wait(t)
 join(5063, 5059)
-wait(10 * t)
-
-show_ring()
-
-stride = (1 << 32) // 128
-testcases = [3, 14, 35, 46, 65, 70, 73, 88, 91, 102, 112, 123]
-
-for case in testcases:
-	id = stride * case
-
-	for port in [5057, 5059, 5060, 5063]:
-		verify(port, id)
-		wait(t)
-
+wait(t)
 join(5062, 5059)
 wait(t)
 join(5061, 5063)
@@ -109,18 +102,41 @@ join(5064, 5061)
 wait(t)
 join(5058, 5062)
 wait(t)
+join(5065, 5064)
+wait(t)
+join(5066, 5060)
+wait(t)
+join(5067, 5064)
+wait(t)
+join(5068, 5059)
+wait(t)
+join(5069, 5063)
+wait(t)
+join(5070, 5067)
+wait(t)
+join(5071, 5066)
+wait(t)
+join(5072, 5071)
+wait(10 * t)
 
 show_ring()
 
-stride = (1 << 32) // 128
-testcases = [10, 8, 35, 73, 65, 112, 79, 90, 45, 61, 33, 100]
+rpccnt_init = get_system_rpc_count()
+time.sleep(60)
+rpccnt_after = get_system_rpc_count()
+rpc_per_sec_idle = (rpccnt_after - rpccnt_init) / 60
+print(f'Average RPC count per sec during 60s: {rpc_per_sec_idle}')
 
-for case in testcases:
-	id = stride * case
-
-	for port in list(range(5057, 5065)):
-		verify(port, id)
-		wait(t)
+time_before = time.time()
+rpccnt_before = get_system_rpc_count()
+for i in range(256):
+	port = random.randint(5057, 5072)
+	id = random.randint(0, 0xffffffff)
+	verify(port, id)
+rpccnt_after = get_system_rpc_count()
+time_after = time.time()
+rpc_per_find = (rpccnt_after - rpccnt_before - rpc_per_sec_idle * (time_after - time_before)) / 256
+print(f'Average RPC per find: {rpc_per_find}')
 
 print("{} find successor requests, ".format(find_successor_req), end="")
 if (incorrect == 0):

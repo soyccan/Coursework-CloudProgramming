@@ -1,11 +1,8 @@
 #include "chord.h"
 
-#include <iostream>
-#include <mutex>
-
-#include "rpc/client.h"
-#include "rpc/server.h"
 #include "rpcs.h"
+
+#include <rpc/server.h>
 
 int main(int argc, char *argv[]) {
   std::string ip;

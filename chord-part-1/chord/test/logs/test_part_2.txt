@@ -1,0 +1,308 @@
+node 5057 created a chord ring
+wait 2 sec...
+node 5059 joined node 5057
+wait 2 sec...
+node 5060 joined node 5057
+wait 2 sec...
+node 5063 joined node 5059
+wait 2 sec...
+node 5062 joined node 5059
+wait 2 sec...
+node 5061 joined node 5063
+wait 2 sec...
+node 5064 joined node 5061
+wait 2 sec...
+node 5058 joined node 5062
+wait 2 sec...
+node 5065 joined node 5064
+wait 2 sec...
+node 5066 joined node 5060
+wait 2 sec...
+node 5067 joined node 5064
+wait 2 sec...
+node 5068 joined node 5059
+wait 2 sec...
+node 5069 joined node 5063
+wait 2 sec...
+node 5070 joined node 5067
+wait 2 sec...
+node 5071 joined node 5066
+wait 2 sec...
+node 5072 joined node 5071
+wait 20 sec...
+neighbors of 5057: [[b'127.0.0.1', 5072, 1321411427], [b'127.0.0.1', 5064, 686459322]]
+neighbors of 5058: [[b'127.0.0.1', 5062, 1348460200], [b'127.0.0.1', 5072, 1321411427]]
+neighbors of 5059: [[b'127.0.0.1', 5064, 686459322], [b'127.0.0.1', 5063, 302476200]]
+neighbors of 5060: [[b'127.0.0.1', 5066, 2080007427], [b'127.0.0.1', 5069, 1856465875]]
+neighbors of 5061: [[b'127.0.0.1', 5067, 3723934386], [b'127.0.0.1', 5065, 2146868174]]
+neighbors of 5062: [[b'127.0.0.1', 5071, 1438614044], [b'127.0.0.1', 5058, 1324994620]]
+neighbors of 5063: [[b'127.0.0.1', 5059, 373792412], [b'127.0.0.1', 5070, 3865350209]]
+neighbors of 5064: [[b'127.0.0.1', 5057, 716540891], [b'127.0.0.1', 5059, 373792412]]
+neighbors of 5065: [[b'127.0.0.1', 5061, 2688668095], [b'127.0.0.1', 5066, 2080007427]]
+neighbors of 5066: [[b'127.0.0.1', 5065, 2146868174], [b'127.0.0.1', 5060, 1983348104]]
+neighbors of 5067: [[b'127.0.0.1', 5070, 3865350209], [b'127.0.0.1', 5061, 2688668095]]
+neighbors of 5068: [[b'127.0.0.1', 5069, 1856465875], [b'127.0.0.1', 5071, 1438614044]]
+neighbors of 5069: [[b'127.0.0.1', 5060, 1983348104], [b'127.0.0.1', 5068, 1542670640]]
+neighbors of 5070: [[b'127.0.0.1', 5063, 302476200], [b'127.0.0.1', 5067, 3723934386]]
+neighbors of 5071: [[b'127.0.0.1', 5068, 1542670640], [b'127.0.0.1', 5062, 1348460200]]
+neighbors of 5072: [[b'127.0.0.1', 5058, 1324994620], [b'127.0.0.1', 5057, 716540891]]
+Average RPC count per sec during 60s: 24.266666666666666
+find_successor(5064, 3729620842) correct.
+find_successor(5068, 267886917) correct.
+find_successor(5059, 1656599049) correct.
+find_successor(5065, 4284231445) correct.
+find_successor(5072, 3509301401) correct.
+find_successor(5071, 3482988297) correct.
+find_successor(5067, 1570089573) correct.
+find_successor(5059, 1425774153) correct.
+find_successor(5067, 2099549483) correct.
+find_successor(5069, 3848775667) correct.
+find_successor(5072, 3242423172) correct.
+find_successor(5069, 3636344472) correct.
+find_successor(5071, 3333184686) correct.
+find_successor(5059, 2143171919) correct.
+find_successor(5060, 584389441) correct.
+find_successor(5059, 3031076917) correct.
+find_successor(5069, 323755532) correct.
+find_successor(5072, 3550059843) correct.
+find_successor(5067, 1440405768) correct.
+find_successor(5059, 836210374) correct.
+find_successor(5064, 3065502708) correct.
+find_successor(5058, 3044916285) correct.
+find_successor(5065, 1894427034) correct.
+find_successor(5072, 1316009240) correct.
+find_successor(5067, 3586514090) correct.
+find_successor(5064, 3774907319) correct.
+find_successor(5065, 2288495191) correct.
+find_successor(5062, 574218156) correct.
+find_successor(5059, 2019991485) correct.
+find_successor(5064, 1350423533) correct.
+find_successor(5071, 638516624) correct.
+find_successor(5058, 4075613901) correct.
+find_successor(5065, 2952979121) correct.
+find_successor(5072, 2286694119) correct.
+find_successor(5062, 3208418205) correct.
+find_successor(5061, 4014524202) correct.
+find_successor(5061, 413204655) correct.
+find_successor(5058, 2265212098) correct.
+find_successor(5061, 2908559265) correct.
+find_successor(5072, 2099648471) correct.
+find_successor(5063, 3278464159) correct.
+find_successor(5062, 3426253422) correct.
+find_successor(5065, 2055015256) correct.
+find_successor(5065, 2495895368) correct.
+find_successor(5069, 687999100) correct.
+find_successor(5061, 594410364) correct.
+find_successor(5068, 841657207) correct.
+find_successor(5072, 4151464545) correct.
+find_successor(5066, 2002200702) correct.
+find_successor(5072, 3858210632) correct.
+find_successor(5061, 248139056) correct.
+find_successor(5064, 4039643381) correct.
+find_successor(5058, 551038507) correct.
+find_successor(5061, 2880578205) correct.
+find_successor(5061, 2772193852) correct.
+find_successor(5066, 348342990) correct.
+find_successor(5066, 1934366017) correct.
+find_successor(5064, 2014694555) correct.
+find_successor(5072, 669172985) correct.
+find_successor(5072, 3629994245) correct.
+find_successor(5057, 3898504615) correct.
+find_successor(5063, 3224800856) correct.
+find_successor(5068, 2426037040) correct.
+find_successor(5065, 3070754039) correct.
+find_successor(5060, 2906826864) correct.
+find_successor(5063, 2769355331) correct.
+find_successor(5058, 545062870) correct.
+find_successor(5057, 3164056664) correct.
+find_successor(5057, 3811730137) correct.
+find_successor(5059, 418871176) correct.
+find_successor(5066, 3436077604) correct.
+find_successor(5063, 3930548963) correct.
+find_successor(5064, 535795481) correct.
+find_successor(5063, 1512589903) correct.
+find_successor(5058, 4047767592) correct.
+find_successor(5067, 549826376) correct.
+find_successor(5059, 490800388) correct.
+find_successor(5068, 807119511) correct.
+find_successor(5058, 119107591) correct.
+find_successor(5070, 3919689223) correct.
+find_successor(5064, 678503773) correct.
+find_successor(5066, 679397083) correct.
+find_successor(5060, 1678697104) correct.
+find_successor(5065, 287889157) correct.
+find_successor(5065, 9890389) correct.
+find_successor(5059, 342665529) correct.
+find_successor(5066, 384649199) correct.
+find_successor(5063, 1781918572) correct.
+find_successor(5058, 1069838438) correct.
+find_successor(5063, 3762135194) correct.
+find_successor(5068, 1024637762) correct.
+find_successor(5066, 1414211167) correct.
+find_successor(5065, 2762416213) correct.
+find_successor(5065, 2971837850) correct.
+find_successor(5062, 2986198077) correct.
+find_successor(5065, 3002270710) correct.
+find_successor(5067, 3446382059) correct.
+find_successor(5072, 3304055936) correct.
+find_successor(5067, 2337366493) correct.
+find_successor(5066, 3040058019) correct.
+find_successor(5061, 4102968751) correct.
+find_successor(5066, 1016816612) correct.
+find_successor(5069, 3508922489) correct.
+find_successor(5057, 3988836185) correct.
+find_successor(5057, 3693395866) correct.
+find_successor(5066, 1563323616) correct.
+find_successor(5057, 1697300246) correct.
+find_successor(5070, 3287387656) correct.
+find_successor(5065, 401915378) correct.
+find_successor(5059, 1877514747) correct.
+find_successor(5062, 2064377718) correct.
+find_successor(5062, 2926470933) correct.
+find_successor(5070, 4023777507) correct.
+find_successor(5059, 1176187939) correct.
+find_successor(5060, 1811087777) correct.
+find_successor(5072, 1024227275) correct.
+find_successor(5070, 42742087) correct.
+find_successor(5072, 1106768946) correct.
+find_successor(5065, 2673175524) correct.
+find_successor(5070, 1536190622) correct.
+find_successor(5059, 2008644396) correct.
+find_successor(5068, 2169785732) correct.
+find_successor(5066, 1433500115) correct.
+find_successor(5070, 1307252119) correct.
+find_successor(5061, 4285837997) correct.
+find_successor(5063, 3534910764) correct.
+find_successor(5065, 3464950414) correct.
+find_successor(5068, 3883151969) correct.
+find_successor(5059, 1721963022) correct.
+find_successor(5068, 931294178) correct.
+find_successor(5061, 2744083054) correct.
+find_successor(5064, 1709359827) correct.
+find_successor(5072, 3891624531) correct.
+find_successor(5068, 433210618) correct.
+find_successor(5063, 2833103241) correct.
+find_successor(5067, 1799450352) correct.
+find_successor(5072, 3512544416) correct.
+find_successor(5070, 3204249998) correct.
+find_successor(5058, 969665189) correct.
+find_successor(5071, 3740045020) correct.
+find_successor(5058, 3693265413) correct.
+find_successor(5067, 4281332204) correct.
+find_successor(5057, 3988173950) correct.
+find_successor(5072, 165665269) correct.
+find_successor(5063, 58722847) correct.
+find_successor(5061, 3094098303) correct.
+find_successor(5057, 1003436636) correct.
+find_successor(5065, 3414180189) correct.
+find_successor(5059, 2036726060) correct.
+find_successor(5060, 220913743) correct.
+find_successor(5059, 1583458057) correct.
+find_successor(5069, 3046517774) correct.
+find_successor(5065, 50620494) correct.
+find_successor(5071, 1211285912) correct.
+find_successor(5063, 4162863341) correct.
+find_successor(5069, 4090421462) correct.
+find_successor(5071, 1287516740) correct.
+find_successor(5070, 4083398667) correct.
+find_successor(5071, 344341958) correct.
+find_successor(5057, 2134864714) correct.
+find_successor(5059, 2282136143) correct.
+find_successor(5061, 329987903) correct.
+find_successor(5067, 2611348024) correct.
+find_successor(5065, 2166118888) correct.
+find_successor(5071, 3024213105) correct.
+find_successor(5066, 576185420) correct.
+find_successor(5070, 44905460) correct.
+find_successor(5068, 3324325392) correct.
+find_successor(5072, 1519987318) correct.
+find_successor(5060, 641227005) correct.
+find_successor(5071, 3772419531) correct.
+find_successor(5069, 2180804197) correct.
+find_successor(5071, 3063599047) correct.
+find_successor(5069, 3189681410) correct.
+find_successor(5063, 1781776194) correct.
+find_successor(5065, 1176261581) correct.
+find_successor(5060, 530994297) correct.
+find_successor(5062, 2522787195) correct.
+find_successor(5059, 788861139) correct.
+find_successor(5062, 274969106) correct.
+find_successor(5072, 2102117643) correct.
+find_successor(5063, 292360823) correct.
+find_successor(5063, 1098480004) correct.
+find_successor(5064, 3465407388) correct.
+find_successor(5061, 1177245533) correct.
+find_successor(5070, 2062580666) correct.
+find_successor(5070, 3207768873) correct.
+find_successor(5067, 3616942597) correct.
+find_successor(5066, 1205669231) correct.
+find_successor(5069, 901008978) correct.
+find_successor(5072, 3542564139) correct.
+find_successor(5060, 93133971) correct.
+find_successor(5057, 1741272213) correct.
+find_successor(5062, 4087590962) correct.
+find_successor(5068, 41242271) correct.
+find_successor(5061, 830120284) correct.
+find_successor(5061, 2161134212) correct.
+find_successor(5067, 156174256) correct.
+find_successor(5066, 2144959303) correct.
+find_successor(5071, 3498372950) correct.
+find_successor(5069, 1539867671) correct.
+find_successor(5062, 3129753970) correct.
+find_successor(5063, 3276384321) correct.
+find_successor(5057, 1324447093) correct.
+find_successor(5068, 354444299) correct.
+find_successor(5064, 2761939181) correct.
+find_successor(5063, 3489099377) correct.
+find_successor(5067, 2486612486) correct.
+find_successor(5059, 820883517) correct.
+find_successor(5064, 1428938464) correct.
+find_successor(5065, 2888078231) correct.
+find_successor(5065, 249470560) correct.
+find_successor(5063, 3893092277) correct.
+find_successor(5072, 3400645887) correct.
+find_successor(5062, 3903519987) correct.
+find_successor(5067, 174933447) correct.
+find_successor(5072, 1702580336) correct.
+find_successor(5066, 467839685) correct.
+find_successor(5070, 610160670) correct.
+find_successor(5066, 1429165637) correct.
+find_successor(5069, 3366763776) correct.
+find_successor(5059, 3131513097) correct.
+find_successor(5058, 1125307341) correct.
+find_successor(5070, 2025839717) correct.
+find_successor(5071, 1529534186) correct.
+find_successor(5063, 3161506684) correct.
+find_successor(5067, 1014727459) correct.
+find_successor(5069, 2993118248) correct.
+find_successor(5068, 1773115142) correct.
+find_successor(5067, 1440708195) correct.
+find_successor(5064, 314577273) correct.
+find_successor(5069, 650810045) correct.
+find_successor(5066, 1398649016) correct.
+find_successor(5071, 325223491) correct.
+find_successor(5067, 854081065) correct.
+find_successor(5072, 50024219) correct.
+find_successor(5069, 3630130474) correct.
+find_successor(5058, 2456361724) correct.
+find_successor(5062, 1655751802) correct.
+find_successor(5064, 1340350875) correct.
+find_successor(5060, 3914456493) correct.
+find_successor(5065, 3540614529) correct.
+find_successor(5065, 2783427043) correct.
+find_successor(5066, 1708477789) correct.
+find_successor(5063, 1556304203) correct.
+find_successor(5063, 2230792484) correct.
+find_successor(5058, 907398209) correct.
+find_successor(5058, 1209747353) correct.
+find_successor(5064, 1950549585) correct.
+find_successor(5066, 3787469291) correct.
+find_successor(5057, 3281055924) correct.
+find_successor(5068, 473572311) correct.
+find_successor(5068, 3804043109) correct.
+find_successor(5061, 1084622905) correct.
+find_successor(5061, 2393077782) correct.
+find_successor(5064, 4202361274) correct.
+Average RPC per find: 8.632250181833903
+256 find successor requests, All correct.
+Do not forget to terminate your Chord nodes!
