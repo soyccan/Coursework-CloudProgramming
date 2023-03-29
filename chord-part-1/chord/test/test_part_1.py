@@ -81,14 +81,12 @@ sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=
 
 create(5057)
 wait(t)
-
 join(5059, 5057)
 wait(t)
 join(5060, 5057)
 wait(t)
 join(5063, 5059)
 wait(10 * t)
-
 show_ring()
 
 stride = (1 << 32) // 128
@@ -108,8 +106,7 @@ wait(t)
 join(5064, 5061)
 wait(t)
 join(5058, 5062)
-wait(t)
-
+wait(10 * t)
 show_ring()
 
 stride = (1 << 32) // 128

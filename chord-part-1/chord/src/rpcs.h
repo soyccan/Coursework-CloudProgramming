@@ -9,6 +9,8 @@
 #include <array>
 #include <chrono>
 #include <iostream>
+#include <limits>
+#include <type_traits>
 #include <utility>
 
 #ifndef NDEBUG
@@ -30,7 +32,8 @@
 // {successor, predecessor}
 using NodePair = std::pair<Node, Node>;
 
-const size_t FINGER_TABLE_SIZE = 4;
+constexpr size_t ID_NBITS = 32;
+constexpr size_t FINGER_TABLE_SIZE = 4;
 
 Node self, successor, predecessor;
 std::array<Node, FINGER_TABLE_SIZE> finger_table;
@@ -94,7 +97,7 @@ static Node closest_preceding_node(uint64_t id) {
     if (!n->ip.empty() && is_successor_of(id, n->id, self.id))
       return *n;
   }
-  return self; // TODO: return successor in this case?
+  return successor.ip.empty() ? self : successor;
 }
 
 Node find_successor(uint64_t id) {
@@ -180,17 +183,29 @@ void notify(Node sender) {
   }
 }
 
+static auto increment_with_wrap = [](auto &value, auto maximum) {
+  // branchless equivalence of:
+  //   return value = value == maximum ? 0 : value + 1;
+  return value = (value + 1) &
+                 -static_cast<std::remove_reference_t<decltype(value)>>(
+                     value != maximum);
+};
+
 // periodically refresh finger table entries
 // next_finger stores the index of the next finger to fix
 void fix_fingers() {
-  next_finger =
-      (next_finger + 1) & -(size_t)(next_finger != finger_table.size() - 1);
-
-  assert(next_finger < finger_table.size() && next_finger < 64);
+  increment_with_wrap(next_finger, finger_table.size() - 1);
+  assert(next_finger < finger_table.size());
 
   _LOG_DEBUG << self << ": fix fingers[" << next_finger << "]" << std::endl;
 
-  Node suc = find_successor(self.id + (1 << next_finger));
+  // a finger table step is 2^ID_NBITS / 2^FINGER_TABLE_SIZE
+  constexpr size_t finger_table_step_log = ID_NBITS - finger_table.size();
+  assert(next_finger + finger_table_step_log <
+         std::numeric_limits<size_t>::digits);
+  Node suc =
+      find_successor(self.id + (static_cast<size_t>(1)
+                                << (next_finger + finger_table_step_log)));
   if (!suc.ip.empty()) {
     finger_table.at(next_finger) = suc;
 
