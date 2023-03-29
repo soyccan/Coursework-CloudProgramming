@@ -35,6 +35,7 @@ using NodePair = std::pair<Node, Node>;
 constexpr size_t ID_NBITS = 32;
 constexpr size_t FINGER_TABLE_SIZE = 4;
 
+// TODO: add a mutex to protect sucessor, predecessor & finger table
 Node self, successor, predecessor;
 std::array<Node, FINGER_TABLE_SIZE> finger_table;
 size_t next_finger = 0;
@@ -76,8 +77,9 @@ void create() {
 void join(Node member) {
   _LOG_DEBUG << self << ": join at " << member << std::endl;
 
+  predecessor.ip.clear();
+
   try {
-    predecessor.ip.clear();
     successor = rpc::client(member.ip, member.port)
                     .call("find_successor", self.id)
                     .as<Node>();
@@ -85,19 +87,50 @@ void join(Node member) {
     _LOG_DEBUG << self << ": join and set successor to " << successor
                << std::endl;
 
-  } catch (rpc::rpc_error &e) {
+  } catch (const rpc::rpc_error &e) {
     std::cout << self << ": Error when joining to " << member << ": "
               << e.what() << ". In function " << e.get_function_name()
               << std::endl;
+
+  } catch (const std::exception &e) {
+    std::cout << self << ": Error when joining to " << member << ": "
+              << e.what() << std::endl;
   }
 }
 
-static Node closest_preceding_node(uint64_t id) {
-  for (auto n = finger_table.crbegin(); n != finger_table.crend(); ++n) {
+static Node &closest_preceding_node(uint64_t id) {
+  for (auto n = finger_table.rbegin(); n != finger_table.rend(); ++n) {
     if (!n->ip.empty() && is_successor_of(id, n->id, self.id))
       return *n;
   }
   return successor.ip.empty() ? self : successor;
+}
+
+Node find_successor(uint64_t id);
+
+static void handle_node_dead(Node &node, const std::exception &error) {
+  try {
+    auto &e = dynamic_cast<const std::system_error &>(error);
+    if (e.code().value() == ECONNREFUSED) {
+      // if connection is refused, we think the node is dead
+      // TODO: the error code may depend on operating system?
+      _LOG_DEBUG << self << ": " << node << " seems to be dead. Removing."
+                 << std::endl;
+      if (node == successor) {
+        successor = self; // should not set to none, or may be seen
+                          // uninitialized (not in the ring)
+        for (auto &entry : finger_table)
+          if (entry == node)
+            entry.ip.clear();
+
+        if (auto suc = find_successor(self.id); !suc.ip.empty())
+          successor = suc;
+      } else {
+        node.ip.clear();
+      }
+    }
+  } catch (const std::bad_cast &) {
+  }
 }
 
 Node find_successor(uint64_t id) {
@@ -109,26 +142,39 @@ Node find_successor(uint64_t id) {
     return successor;
   }
 
-  try {
-    Node closest = closest_preceding_node(id);
+  for (size_t i = 0; i < finger_table.size(); i++) {
+    Node &closest = closest_preceding_node(id);
+
+    _LOG_DEBUG << self << ": closest node is " << closest << std::endl;
+
     if (closest == self)
       // avoid infinite recursion
       return {};
 
-    Node suc = rpc::client(closest.ip, closest.port)
-                   .call("find_successor", id)
-                   .as<Node>();
+    try {
+      Node suc = rpc::client(closest.ip, closest.port)
+                     .call("find_successor", id)
+                     .as<Node>();
 
-    _LOG_DEBUG << self << ": successor of " << id << " is " << suc << std::endl;
+      _LOG_DEBUG << self << ": successor of " << id << " is " << suc
+                 << std::endl;
 
-    return suc;
+      return suc;
 
-  } catch (rpc::rpc_error &e) {
-    std::cout << self << ": Error when finding successor of id " << id << ": "
-              << e.what() << ". In function " << e.get_function_name()
-              << std::endl;
-    return {};
+    } catch (const rpc::rpc_error &e) {
+      std::cout << self << ": Error when finding successor of id " << id << ": "
+                << e.what() << ". In function " << e.get_function_name()
+                << std::endl;
+      return {};
+
+    } catch (const std::exception &e) {
+      std::cout << self << ": Error when finding successor of id " << id << ": "
+                << e.what() << std::endl;
+      handle_node_dead(closest, e); // remove the entry
+      continue;                     // try another entry
+    }
   }
+  return {};
 }
 
 // regular stabilization
@@ -141,10 +187,23 @@ void stabilize() {
 
   _LOG_DEBUG << self << ": stabilize" << std::endl;
 
+  std::unique_ptr<rpc::client> succli;
   try {
-    rpc::client succli(successor.ip, successor.port);
+    succli = std::make_unique<rpc::client>(successor.ip, successor.port);
 
-    Node sucpred = succli.call("get_neighbors").as<NodePair>().second;
+  } catch (const rpc::rpc_error &e) {
+    std::cout << self << ": Error when stabilizing: " << e.what()
+              << ". In function " << e.get_function_name() << std::endl;
+    return;
+
+  } catch (const std::exception &e) {
+    std::cout << self << ": Error when stabilizing: " << e.what() << std::endl;
+    handle_node_dead(successor, e);
+    return;
+  }
+
+  try {
+    Node sucpred = succli->call("get_neighbors").as<NodePair>().second;
     if (!sucpred.ip.empty() && is_successor_of(successor, sucpred.id, self)) {
 
       _LOG_DEBUG << self << ": stabilize and set successor to " << sucpred
@@ -154,12 +213,15 @@ void stabilize() {
       successor = std::move(sucpred);
 
     } else {
-      succli.call("notify", self);
+      succli->call("notify", self);
     }
 
-  } catch (rpc::rpc_error &e) {
-    std::cout << self << ": Error when stabilizing: " << e.what()
+  } catch (const rpc::rpc_error &e) {
+    std::cout << self << ": Error when stabilizing : " << e.what()
               << ". In function " << e.get_function_name() << std::endl;
+
+  } catch (const std::exception &e) {
+    std::cout << self << ": Error when stabilizing : " << e.what() << std::endl;
   }
 }
 
@@ -224,11 +286,14 @@ void check_predecessor() {
   try {
     rpc::client(predecessor.ip, predecessor.port).call("get_info");
 
-  } catch (rpc::rpc_error &e) {
-    predecessor.ip.clear();
-
+  } catch (const rpc::rpc_error &e) {
     std::cout << self << ": Error when checking predecessor: " << e.what()
               << ". In function " << e.get_function_name() << std::endl;
+
+  } catch (const std::exception &e) {
+    std::cout << self << ": Error when checking predecessor: " << e.what()
+              << std::endl;
+    handle_node_dead(predecessor, e);
   }
 }
 

@@ -6,6 +6,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <functional>
+#include <iostream>
 #include <mutex>
 #include <thread>
 
@@ -23,17 +24,18 @@ uint64_t hash(Node const &n) {
 }
 
 std::vector<std::thread> periodics;
-std::atomic_bool terminated{false}, ready_to_exit{false};
+std::atomic_bool terminated{false};
+std::atomic_flag ready_to_exit{false};
 std::atomic_int64_t rpc_count{0};
-std::mutex mutex;
-std::condition_variable condvar;
 uint64_t interval = 2000;
+
+extern Node self;
 
 template <typename F> void add_periodic(F func) {
   periodics.emplace_back([func = func]() {
     while (true) {
-      if (terminated) {
-        terminated = false;
+      if (terminated.exchange(false)) {
+        terminated.notify_one();
         break;
       }
       auto x = std::chrono::steady_clock::now() +
@@ -41,6 +43,7 @@ template <typename F> void add_periodic(F func) {
       func();
       std::this_thread::sleep_until(x);
     }
+    std::cout << self.port << ": Terminating periodic " << &func << std::endl;
   });
 }
 
@@ -51,11 +54,11 @@ template <typename F> void add_rpc(std::string const &name, F func) {
   add_rpc(name, &F::operator());
 }
 
-template <typename R, typename... Args>
-void add_rpc(std::string const &name, R (*func)(Args...)) {
+template <typename Ret, typename... Args>
+void add_rpc(std::string const &name, Ret (*func)(Args...)) {
   server_p->bind(name, [func = func](Args... args) {
     rpc_count++;
-    return func(std::forward<Args...>(args)...);
+    return func(std::forward<Args>(args)...);
   });
 }
 

@@ -32,26 +32,20 @@ int main(int argc, char *argv[]) {
 
   server_p->bind("kill", []() {
     for (size_t i = 0; i < periodics.size(); i++) {
-      terminated = true;
-      while (terminated)
-        ;
+      _LOG_DEBUG << "sending termination signal to periodic #" << i << std::endl;
+      terminated.store(true);
+
+      _LOG_DEBUG << "waiting for termination of periodic #" << i << std::endl;
+      terminated.wait(true);
     }
     for (auto &p : periodics) {
       p.join();
     }
-    {
-      std::lock_guard lk(mutex);
-      ready_to_exit = true;
-    }
-    // unlock before notify to avoid the waked up thread get blocked again
-    condvar.notify_one();
+    ready_to_exit.test_and_set();
+    ready_to_exit.notify_one();
   });
 
-  {
-    std::unique_lock lk(mutex);
-    condvar.wait(
-        lk, []() -> auto & { return ready_to_exit; });
-  }
+  ready_to_exit.wait(false);
 
   std::this_thread::sleep_until(std::chrono::steady_clock::now() +
                                 std::chrono::milliseconds(3000));
