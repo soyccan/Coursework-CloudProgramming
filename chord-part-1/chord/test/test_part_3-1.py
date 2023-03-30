@@ -2,6 +2,8 @@
 
 import msgpackrpc
 import time
+import sys
+import io
 
 ids = []
 find_successor_req = 0
@@ -65,6 +67,9 @@ def verify(port, id):
 def wait(t):
 	print("wait {} sec...".format(t))
 	time.sleep(t)
+
+# unbuffered
+sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
 
 create(5057)
 wait(t)

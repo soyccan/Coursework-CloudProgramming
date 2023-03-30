@@ -8,8 +8,11 @@
 
 #include <array>
 #include <chrono>
+#include <exception>
 #include <iostream>
 #include <limits>
+#include <memory>
+#include <thread>
 #include <type_traits>
 #include <utility>
 
@@ -23,7 +26,7 @@
   })()
 #else
 #define _LOG_DEBUG                                                             \
-  if (1)                                                                       \
+  if (true)                                                                    \
     ;                                                                          \
   else                                                                         \
     std::cout
@@ -32,6 +35,7 @@
 // {successor, predecessor}
 using NodePair = std::pair<Node, Node>;
 
+constexpr size_t N_FIND_RETRIAL = 2;
 constexpr size_t ID_NBITS = 32;
 constexpr size_t FINGER_TABLE_SIZE = 4;
 
@@ -80,9 +84,13 @@ void join(Node member) {
   predecessor.ip.clear();
 
   try {
-    successor = rpc::client(member.ip, member.port)
-                    .call("find_successor", self.id)
-                    .as<Node>();
+    auto suc = rpc::client(member.ip, member.port)
+                   .call("find_successor", self.id)
+                   .as<Node>();
+    if (suc.ip.empty())
+      return;
+
+    successor = std::move(suc);
 
     _LOG_DEBUG << self << ": join and set successor to " << successor
                << std::endl;
@@ -117,6 +125,8 @@ static void handle_node_dead(Node &node, const std::exception &error) {
       _LOG_DEBUG << self << ": " << node << " seems to be dead. Removing."
                  << std::endl;
       if (node == successor) {
+        // if successor is dead, we need to find a new one
+        // & remove relevant finger table entries
         successor = self; // should not set to none, or may be seen
                           // uninitialized (not in the ring)
         for (auto &entry : finger_table)
@@ -124,7 +134,7 @@ static void handle_node_dead(Node &node, const std::exception &error) {
             entry.ip.clear();
 
         if (auto suc = find_successor(self.id); !suc.ip.empty())
-          successor = suc;
+          successor = std::move(suc);
       } else {
         node.ip.clear();
       }
@@ -136,43 +146,49 @@ static void handle_node_dead(Node &node, const std::exception &error) {
 Node find_successor(uint64_t id) {
   _LOG_DEBUG << self << ": find successor of " << id << std::endl;
 
-  if (is_successor_of(successor, id, self)) {
-    _LOG_DEBUG << self << ": successor of " << id << " is " << successor
-               << std::endl;
-    return successor;
-  }
+  for (size_t tries = 0; tries < N_FIND_RETRIAL; tries++) {
+    if (is_successor_of(successor, id, self)) {
+      _LOG_DEBUG << self << ": successor of " << id << " is " << successor
+                 << std::endl;
+      return successor;
+    }
 
-  for (size_t i = 0; i < finger_table.size(); i++) {
-    Node &closest = closest_preceding_node(id);
+    for (size_t i = 0; i < finger_table.size(); i++) {
+      Node &closest = closest_preceding_node(id);
 
-    _LOG_DEBUG << self << ": closest node is " << closest << std::endl;
-
-    if (closest == self)
-      // avoid infinite recursion
-      return {};
-
-    try {
-      Node suc = rpc::client(closest.ip, closest.port)
-                     .call("find_successor", id)
-                     .as<Node>();
-
-      _LOG_DEBUG << self << ": successor of " << id << " is " << suc
+      _LOG_DEBUG << self << ": closest node of " << id << " is " << closest
                  << std::endl;
 
-      return suc;
+      if (closest == self)
+        // avoid infinite recursion
+        break;
 
-    } catch (const rpc::rpc_error &e) {
-      std::cout << self << ": Error when finding successor of id " << id << ": "
-                << e.what() << ". In function " << e.get_function_name()
-                << std::endl;
-      return {};
+      try {
+        Node suc = rpc::client(closest.ip, closest.port)
+                       .call("find_successor", id)
+                       .as<Node>();
 
-    } catch (const std::exception &e) {
-      std::cout << self << ": Error when finding successor of id " << id << ": "
-                << e.what() << std::endl;
-      handle_node_dead(closest, e); // remove the entry
-      continue;                     // try another entry
+        _LOG_DEBUG << self << ": successor of " << id << " is " << suc
+                   << std::endl;
+
+        return suc;
+
+      } catch (const rpc::rpc_error &e) {
+        std::cout << self << ": Error when finding successor of id " << id
+                  << ": " << e.what() << ". In function "
+                  << e.get_function_name() << std::endl;
+        return {};
+
+      } catch (const std::exception &e) {
+        std::cout << self << ": Error when finding successor of id " << id
+                  << ": " << e.what() << std::endl;
+        handle_node_dead(closest, e); // remove the entry
+        continue;                     // try another entry
+      }
     }
+    // retry in case of successor dead
+    _LOG_DEBUG << self << ": find successor of " << id << " retry #" << tries
+               << std::endl;
   }
   return {};
 }
@@ -297,10 +313,6 @@ void check_predecessor() {
   }
 }
 
-#ifndef NDEBUG
-int get_rpc_count() { return rpc_count; }
-#endif
-
 void register_rpcs() {
   add_rpc("get_info", &get_info); // Do not modify this line.
   add_rpc("get_neighbors", &get_neighbors);
@@ -308,10 +320,6 @@ void register_rpcs() {
   add_rpc("join", &join);
   add_rpc("find_successor", &find_successor);
   add_rpc("notify", &notify);
-
-#ifndef NDEBUG
-  add_rpc("get_rpc_count", &get_rpc_count);
-#endif
 }
 
 void register_periodics() {

@@ -2,6 +2,8 @@
 
 import msgpackrpc
 import time
+import sys
+import io
 
 ids = []
 find_successor_req = 0
@@ -66,6 +68,17 @@ def wait(t):
 	print("wait {} sec...".format(t))
 	time.sleep(t)
 
+def get_neighbors(port):
+	client = new_client("127.0.0.1", port)
+	return client.call("get_neighbors")
+
+def show_ring():
+	for i in range(5057, 5065):
+		print(f'neighbors of {i}:', get_neighbors(i))
+
+# unbuffered
+sys.stdout = io.TextIOWrapper(open(sys.stdout.fileno(), 'wb', 0), write_through=True)
+
 create(5057)
 wait(t)
 
@@ -83,6 +96,7 @@ join(5063, 5062)
 wait(t)
 join(5064, 5063)
 wait(10 * t)
+show_ring()
 
 kill(5062)
 kill(5058)

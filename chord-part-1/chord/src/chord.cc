@@ -45,6 +45,8 @@ int main(int argc, char *argv[]) {
     ready_to_exit.notify_one();
   });
 
+  server_p->bind("get_rpc_count", []() { return rpc_count.load(); });
+
   ready_to_exit.wait(false);
 
   std::this_thread::sleep_until(std::chrono::steady_clock::now() +
