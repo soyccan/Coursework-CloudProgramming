@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: "mythical-mysfits-eks"
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+  labels:
+    app: mythical-mysfits-eks
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /mysfits/*/like
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: "mythical-mysfits-like"
+                port:
+                  number: 80
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: "mythical-mysfits-nolike"
+                port: 
+                  number: 80

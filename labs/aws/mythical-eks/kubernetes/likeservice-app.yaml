@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mythical-mysfits-like
+  namespace: default
+  labels:
+    app: mythical-mysfits-like
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mythical-mysfits-like
+  template:
+    metadata:
+      labels:
+        app: mythical-mysfits-like
+    spec:
+      serviceAccount: mythical-misfit
+      containers:
+        - name: mythical-mysfits-like
+          image: 624148956508.dkr.ecr.ap-northeast-1.amazonaws.com/mythical-like:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: MONOLITH_URL
+              value: https://k8s-default-mythical-e376a58c30-1588147793.ap-northeast-1.elb.amazonaws.com/
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mythical-mysfits-like
+spec:
+  type: NodePort
+  selector:
+    app: mythical-mysfits-like
+  ports:
+   -  protocol: TCP
+      port: 80
+      targetPort: 80

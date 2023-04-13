@@ -1,0 +1,25 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: mythicaleks-eksctl
+  region: ap-northeast-1
+  version: "1.25"
+
+availabilityZones: ["ap-northeast-1a", "ap-northeast-1c", "ap-northeast-1d"]
+
+managedNodeGroups:
+- name: nodegroup
+  desiredCapacity: 5
+  ssh:
+    allow: true
+    publicKeyName: mythicaleks
+  amiFamily: AmazonLinux2
+  instanceType: t3.micro
+
+# To enable all of the control plane logs, uncomment below:
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["*"]
+

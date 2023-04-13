@@ -1,0 +1,12 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:*"
+			],
+			"Resource": "arn:aws:dynamodb:ap-northeast-1:624148956508:table/mythical-db"
+		}
+	]
+}

@@ -5,3 +5,9 @@
 	path = chord-part-1/chord/subprojects/rpclib
 	url = https://github.com/rpclib/rpclib.git
 	branch = v2.3.0
+[submodule "labs/aws/eks/amazon-ecs-mythicalmysfits-workshop"]
+	path = labs/aws/eks/amazon-ecs-mythicalmysfits-workshop
+	url = https://github.com/aws-samples/amazon-ecs-mythicalmysfits-workshop.git
+[submodule "labs/aws/mythical-eks/amazon-ecs-mythicalmysfits-workshop"]
+	path = labs/aws/mythical-eks/amazon-ecs-mythicalmysfits-workshop
+	url = https://github.com/aws-samples/amazon-ecs-mythicalmysfits-workshop.git
