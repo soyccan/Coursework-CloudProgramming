@@ -5,10 +5,13 @@ metadata:
   labels:
     app.kubernetes.io/name: chord
 spec:
+  # set hostname & subdomain to make this pod discoverable by FQDN
+  # (leader.chord.my-namespace.svc.cluster.local)
+  # also require a headless service
   hostname: leader
   subdomain: chord
   initContainers:
-  # ensure network is setup before running chord container
+    # ensure network is setup before running chord container
   - name: noop
     image: alpine
   containers:
@@ -72,7 +75,7 @@ spec:
         app.kubernetes.io/name: chord
     spec:
       initContainers:
-      # ensure network is setup before running chord container
+        # ensure network is setup before running chord container
       - name: noop
         image: alpine
       containers:
@@ -86,6 +89,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
+        livenessProbe:
+          tcpSocket:
+            port: chord
+        readinessProbe:
+          tcpSocket:
+            port: chord
       - name: uploadserver
         image: ${REGISTRY_URL}/uploadserver:latest
         ports:
@@ -94,6 +103,12 @@ spec:
         volumeMounts:
         - mountPath: /files
           name: uploadserver-storage
+        livenessProbe:
+          tcpSocket:
+            port: uploadserver
+        readinessProbe:
+          tcpSocket:
+            port: uploadserver
       - name: init
         image: ${REGISTRY_URL}/init:latest
         env:
@@ -137,9 +152,12 @@ metadata:
 spec:
   selector:
     app.kubernetes.io/name: chord
-  clusterIP: None
+  clusterIP: None  # headless
   ports:
   - port: 5057
+    name: chord
+  - port: 5058
+    name: uploadserver
 ---
 # TODO: TLS, use NGINX ingress
 # apiVersion: networking.k8s.io/v1

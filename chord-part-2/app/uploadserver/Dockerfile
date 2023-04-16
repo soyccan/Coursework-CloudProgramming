@@ -13,4 +13,4 @@ RUN \
 
 USER user
 
-CMD python3 -m uploadserver ${PORT}
+CMD python -m uploadserver ${PORT}
