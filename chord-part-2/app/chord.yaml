@@ -1,64 +1,9 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: chord-leader
-  labels:
-    app.kubernetes.io/name: chord
-spec:
-  # set hostname & subdomain to make this pod discoverable by FQDN
-  # (leader.chord.my-namespace.svc.cluster.local)
-  # also require a headless service
-  hostname: leader
-  subdomain: chord
-  initContainers:
-    # ensure network is setup before running chord container
-  - name: noop
-    image: alpine
-  containers:
-  - name: chord
-    image: ${REGISTRY_URL}/chord:latest
-    ports:
-    - containerPort: 5057
-      name: chord
-    env:
-    - name: CHORD_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.podIP
-  - name: uploadserver
-    image: ${REGISTRY_URL}/uploadserver:latest
-    ports:
-    - containerPort: 5058
-      name: uploadserver
-  - name: init
-    image: ${REGISTRY_URL}/init:latest
-    env:
-    - name: LEADER
-      value: "true"
-    - name: CHORD_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.podIP
-    readinessProbe:
-      exec:
-        command: [ls, /workdir/init.done]
-  affinity:
-    # ensure pods land on separate hosts
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchExpressions:
-          - key: app.kubernetes.io/name
-            operator: In
-            values: [chord]
-        topologyKey: kubernetes.io/hostname
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chord
+  name: ${NAME}
 spec:
-  replicas: 2
+  replicas: ${REPLICAS}
   selector:
     matchLabels:
       app.kubernetes.io/name: chord
@@ -67,6 +12,10 @@ spec:
       labels:
         app.kubernetes.io/name: chord
     spec:
+      # if this is the chord leader, set hostname & subdomain to make this
+      # pod discoverable by FQDN (leader.chord.my-namespace.svc.cluster.local)
+      # remember to setup a headless service
+      ${HOSTNAME_SUBDOMAIN}
       initContainers:
         # ensure network is setup before running chord container
       - name: noop
@@ -102,6 +51,7 @@ spec:
       - name: init
         image: ${REGISTRY_URL}/init:latest
         env:
+        ${LEADER_ENV}
         - name: CHORD_IP
           valueFrom:
             fieldRef:
@@ -119,30 +69,3 @@ spec:
                 operator: In
                 values: [chord]
             topologyKey: kubernetes.io/hostname
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: chord
-spec:
-  selector:
-    app.kubernetes.io/name: chord
-  clusterIP: None  # headless
-  ports:
-  - port: 5057
-    name: chord
-  - port: 5058
-    name: uploadserver
----
-# TODO: TLS, use NGINX ingress
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   name: chord
-# spec:
-#   defaultBackend:
-#     service:
-#       name: chord
-#       port:
-#         number:
----
