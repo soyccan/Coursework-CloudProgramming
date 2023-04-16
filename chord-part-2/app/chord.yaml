@@ -30,9 +30,6 @@ spec:
     ports:
     - containerPort: 5058
       name: uploadserver
-    volumeMounts:
-    - mountPath: /files
-      name: uploadserver-storage
   - name: init
     image: ${REGISTRY_URL}/init:latest
     env:
@@ -45,10 +42,6 @@ spec:
     readinessProbe:
       exec:
         command: [ls, /workdir/init.done]
-  volumes:
-  - name: uploadserver-storage
-    persistentVolumeClaim:
-      claimName: uploadserver-storage-claim
   affinity:
     # ensure pods land on separate hosts
     podAntiAffinity:
@@ -100,9 +93,6 @@ spec:
         ports:
         - containerPort: 5058
           name: uploadserver
-        volumeMounts:
-        - mountPath: /files
-          name: uploadserver-storage
         livenessProbe:
           tcpSocket:
             port: uploadserver
@@ -119,10 +109,6 @@ spec:
         readinessProbe:
           exec:
             command: [ls, /workdir/init.done]
-      volumes:
-      - name: uploadserver-storage
-        persistentVolumeClaim:
-          claimName: uploadserver-storage-claim
       affinity:
         # ensure pods land on separate hosts
         podAntiAffinity:
@@ -133,17 +119,6 @@ spec:
                 operator: In
                 values: [chord]
             topologyKey: kubernetes.io/hostname
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: uploadserver-storage-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
 ---
 apiVersion: v1
 kind: Service

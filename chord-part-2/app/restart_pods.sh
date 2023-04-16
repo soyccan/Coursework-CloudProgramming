@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -eux
+set -ux
 
 echo Set your registry url in env: REGISTRY_URL
 
@@ -10,4 +10,4 @@ fi
 
 kubectl delete pod chord-leader --force --grace-period 0
 kubectl scale deployment chord --replicas 0 --timeout 0
-./deploy.sh
+"$(dirname "$0")"/deploy.sh
