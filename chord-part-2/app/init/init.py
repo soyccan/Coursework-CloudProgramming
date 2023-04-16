@@ -2,34 +2,49 @@ import socket
 import os
 import msgpackrpc
 import time
-import signal
 
 
 def new_client(ip, port):
     return msgpackrpc.Client(msgpackrpc.Address(ip, port), timeout=1)
 
 
+def in_ring(ip):
+    try:
+        return bool(new_client(ip, 5057).call("get_successor", 0)[0])
+    except:
+        return False
+
+
+def create(ip):
+    new_client(ip, 5057).call("create")
+    print(f"{ip}: created a ring")
+
+
+def join(ip, target_ip):
+    target_node = new_client(target_ip, 5057).call("get_info")
+    if not target_node[0]:
+        raise Exception(f"{ip}: fail to ping {target_ip}")
+    new_client(ip, 5057).call("join", target_node)
+    print(f"{ip}: joined {target_ip}")
+
+
 is_leader = bool(os.environ.get("LEADER"))
 self_ip = os.environ["CHORD_IP"]
-initialized = False
 
-while not initialized:
+while True:
+    # in case of chord restart, this loop will join a ring again
     time.sleep(1)
 
-    try:
-        if is_leader:
-            new_client(self_ip, 5057).call("create")
-            print(f"{self_ip}: created a ring")
-        else:
-            leader_ip = socket.gethostbyname("leader.chord")
-            leader_node = new_client(leader_ip, 5057).call("get_info")
-            new_client(self_ip, 5057).call("join", leader_node)
-            print(f"{self_ip}: joined {leader_ip}")
-    except:
-        print(f"{self_ip}: Retry initialization")
-        continue
+    if not in_ring(self_ip):
+        try:
+            if is_leader:
+                create(self_ip)
+            else:
+                leader_ip = socket.gethostbyname("leader.chord")
+                join(self_ip, leader_ip)
+        except:
+            print(f"{self_ip}: Retry initialization")
+            continue
 
-    initialized = True
-    open("init.done", "w") # expose to cluster
-
-signal.pause()
+        # expose to cluster for readinessProbe
+        open("init.done", "w")
