@@ -23,7 +23,6 @@ client = new_client(ip, 5057)
 h = hash(filename)
 print("Hash of {} is {}".format(filename, h))
 
-node = client.call("create",)
 node = client.call("find_successor", h)
 node_ip = node[0].decode()
 

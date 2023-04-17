@@ -1,0 +1,47 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: chord
+  region: us-east-1
+  version: "1.25"
+
+availabilityZones: ["us-east-1a", "us-east-1b"]
+
+managedNodeGroups:
+- name: chord
+  amiFamily: AmazonLinux2
+  # instanceType: t3.micro  # free tier, 2 vCPUs / instance, 4 pods
+  # desiredCapacity: 16  # free tier limit: 32 vCPUs
+  instanceType: t3a.small # 8 pods
+  desiredCapacity: 4
+  ssh:
+    allow: true
+    publicKeyName: chord
+  tags:
+    # EC2 tags required for cluster-autoscaler auto discovery
+    k8s.io/cluster-autoscaler/enabled: "true"
+    k8s.io/cluster-autoscaler/chord: "owned"
+
+iam:
+  withOIDC: true
+  serviceAccounts:
+  - metadata:
+      name: ebs-csi-controller-sa
+      namespace: kube-system
+    roleOnly: true
+    roleName: AmazonEKS_EBS_CSI_DriverRole
+    attachPolicyARNs:
+    - arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+
+addons:
+- name: aws-ebs-csi-driver
+  serviceAccountRoleARN: arn:aws:iam::${AWS_ACCOUNT}:role/AmazonEKS_EBS_CSI_DriverRole
+
+# enable control plane logs
+cloudWatch:
+  clusterLogging:
+    # [api, audit, authenticator, controllerManager, scheduler]
+    enableTypes: []
+
+# TODO: EBS PV

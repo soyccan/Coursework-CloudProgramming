@@ -1,11 +1,18 @@
 #!/bin/sh
+# TODO: Automate the process using helm & kustomize
 
 set -ux
 
 echo Set your registry url in env: REGISTRY_URL
 
 if [ ! "${REGISTRY_URL:-}" ]; then
-    export REGISTRY_URL=$(minikube ip):5000
+    if [ "${AWS:-}" ]; then
+        registryId=$(aws ecr describe-registry | yq .registryId)
+        region=$(aws configure get default.region)
+        export REGISTRY_URL=${registryId}.dkr.ecr.${region}.amazonaws.com
+    else
+        export REGISTRY_URL=$(minikube ip):5000
+    fi
 fi
 
 mkdir -pv .gen

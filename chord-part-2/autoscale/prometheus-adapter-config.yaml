@@ -1,0 +1,14 @@
+prometheus:
+  url: http://prometheus-server.monitoring.svc
+  port: 80
+
+rules:
+  external:
+  # /apis/external.metrics.k8s.io/v1beta1/namespaces/default/max_disk_usage
+  - seriesQuery: '{__name__=~"^node_filesystem_avail_bytes|node_filesystem_size_bytes$"}'
+    resources:
+      namespaced: false
+    name:
+      matches: ""
+      as: max_disk_usage
+    metricsQuery: max(1 - node_filesystem_avail_bytes{mountpoint="/", fstype!="rootfs"} / node_filesystem_size_bytes{mountpoint="/", fstype!="rootfs"})

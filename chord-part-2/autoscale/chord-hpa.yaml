@@ -1,0 +1,21 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: chord-hpa
+  # labels:
+  #   k8s.io/cluster-autoscaler/node-template/resources/ephemeral-storage: 100Mi
+spec:
+  minReplicas: 2
+  maxReplicas: 5
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: chord
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: max_disk_usage
+      target:
+        type: Value
+        value: 0.05
