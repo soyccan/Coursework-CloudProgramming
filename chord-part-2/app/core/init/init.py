@@ -28,6 +28,8 @@ def join(ip, target_ip):
     print(f"{ip}: joined {target_ip}")
 
 
+CHORD_LEADER_HOSTNAME = "leader.chord.chord.svc"
+
 is_leader = bool(os.environ.get("LEADER"))
 self_ip = os.environ["CHORD_IP"]
 
@@ -40,7 +42,7 @@ while True:
             if is_leader:
                 create(self_ip)
             else:
-                leader_ip = socket.gethostbyname("leader.chord")
+                leader_ip = socket.gethostbyname(CHORD_LEADER_HOSTNAME)
                 join(self_ip, leader_ip)
         except:
             print(f"{self_ip}: Retry initialization")

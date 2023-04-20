@@ -30,7 +30,7 @@ helm upgrade -i prometheus-adapter prometheus-community/prometheus-adapter \
 # Horizontal Pod Autoscaler
 kubectl apply -f chord-hpa.yaml
 
-# AWS Cluster Autoscaler
+# Cloud Provider-Specific Cluster Autoscaler
 helm repo add autoscaler https://kubernetes.github.io/autoscaler
 helm install cluster-autoscaler autoscaler/cluster-autoscaler \
     --namespace kube-system \

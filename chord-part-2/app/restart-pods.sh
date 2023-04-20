@@ -2,5 +2,6 @@
 
 set -ux
 
-kubectl rollout restart deployment chord-leader
-kubectl rollout restart deployment chord
+kubectl rollout restart deployment -n chord chord-leader
+kubectl rollout restart deployment -n chord chord
+kubectl rollout restart deployment -n chord chord-server

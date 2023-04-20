@@ -15,14 +15,14 @@ if [ ! "${REGISTRY_URL:-}" ]; then
     fi
 fi
 
-mkdir -pv .gen
+mkdir -pv .gen/core .gen/server
 
 # generate normal chord
 export NAME=chord
 export REPLICAS=2
 export HOSTNAME_SUBDOMAIN=
 export LEADER_ENV=
-envsubst < chord.yaml > .gen/chord.yaml
+envsubst < core/chord.yaml > .gen/core/chord.yaml
 
 # generate chord-leader
 export NAME=chord-leader
@@ -30,17 +30,22 @@ export REPLICAS=1
 export HOSTNAME_SUBDOMAIN='hostname: leader
       subdomain: chord'
 export LEADER_ENV='- { name: LEADER, value: "true" }'
-envsubst < chord.yaml > .gen/chord-leader.yaml
+envsubst < core/chord.yaml > .gen/core/chord-leader.yaml
 
-# AWS Load Balancer Controller
-helm repo add eks https://aws.github.io/eks-charts
-helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
-  -n kube-system \
-  --set clusterName=chord \
-  --set serviceAccount.create=false \
-  --set serviceAccount.name=aws-load-balancer-controller
+envsubst < server/server.yaml > .gen/server/server.yaml
+
+if [ "${AWS:-}" ]; then
+    # AWS Load Balancer Controller
+    helm repo add eks https://aws.github.io/eks-charts
+    helm upgrade -i aws-load-balancer-controller eks/aws-load-balancer-controller \
+        -n kube-system \
+        --set clusterName=chord \
+        --set serviceAccount.create=false \
+        --set serviceAccount.name=aws-load-balancer-controller
+fi
 
 # apply chord app & service
-kubectl apply -f .gen/chord.yaml
-kubectl apply -f .gen/chord-leader.yaml
-kubectl apply -f chord-svc.yaml
+kubectl apply -f .gen/core/chord.yaml
+kubectl apply -f .gen/core/chord-leader.yaml
+kubectl apply -f core/chord-svc.yaml
+kubectl apply -f .gen/server/server.yaml

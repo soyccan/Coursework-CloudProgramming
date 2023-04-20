@@ -10,7 +10,7 @@ RUN \
   pip install msgpack-rpc-python
 
 # TODO: debug utils should not exist in production
-COPY --chown=user:user dbgutils.py /workdir
+COPY --chown=user:user _dbg.py /workdir
 
 COPY --chown=user:user init.py /home/user
 USER user

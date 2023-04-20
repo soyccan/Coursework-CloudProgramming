@@ -10,7 +10,7 @@ if [ ! "${REGISTRY_URL:-}" ]; then
         region=$(aws configure get default.region)
         REGISTRY_URL=${registryId}.dkr.ecr.${region}.amazonaws.com/chord
     else
-        REGISTRY_URL=$(minikube ip):5000
+        REGISTRY_URL=$(minikube ip):5000/chord
     fi
 fi
 

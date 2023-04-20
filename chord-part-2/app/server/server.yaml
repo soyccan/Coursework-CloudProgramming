@@ -45,21 +45,24 @@ spec:
   selector:
     app.kubernetes.io/name: chord-server
   type: LoadBalancer
+  ports:
+  - port: 80
+    name: http
 ---
 # TODO: TLS
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: chord
-  annotations:
-    kubernetes.io/ingress.class: alb
-spec:
-  rules:
-  - http:
-    paths:
-    - path: /
-      pathType: ImplementationSpecific
-      backend:
-        service:
-          name: chord
-          port: entry
+# apiVersion: networking.k8s.io/v1
+# kind: Ingress
+# metadata:
+#   name: chord
+#   annotations:
+#     kubernetes.io/ingress.class: alb
+# spec:
+#   rules:
+#   - http:
+#     paths:
+#     - path: /
+#       pathType: ImplementationSpecific
+#       backend:
+#         service:
+#           name: chord
+#           port: entry
