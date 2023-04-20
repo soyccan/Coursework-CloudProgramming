@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ${NAME}
+  namespace: chord
 spec:
   replicas: ${REPLICAS}
   selector:
@@ -16,13 +17,9 @@ spec:
       # pod discoverable by FQDN (leader.chord.my-namespace.svc.cluster.local)
       # remember to setup a headless service
       ${HOSTNAME_SUBDOMAIN}
-      initContainers:
-        # ensure network is setup before running chord container
-      - name: noop
-        image: alpine
       containers:
       - name: chord
-        image: ${REGISTRY_URL}/chord:latest
+        image: ${REGISTRY_URL}/chord/core/chord:latest
         ports:
         - containerPort: 5057
           name: chord
@@ -38,7 +35,7 @@ spec:
           tcpSocket:
             port: chord
       - name: uploadserver
-        image: ${REGISTRY_URL}/uploadserver:latest
+        image: ${REGISTRY_URL}/chord/core/uploadserver:latest
         ports:
         - containerPort: 5058
           name: uploadserver
@@ -49,7 +46,7 @@ spec:
           tcpSocket:
             port: uploadserver
       - name: init
-        image: ${REGISTRY_URL}/init:latest
+        image: ${REGISTRY_URL}/chord/core/init:latest
         env:
         ${LEADER_ENV}
         - name: CHORD_IP

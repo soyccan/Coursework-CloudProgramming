@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chord-server
+  namespace: chord
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: chord-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: chord-server
+    spec:
+      containers:
+      - name: fileserver
+        image: ${REGISTRY_URL}/chord/server/fileserver:latest
+        ports:
+        - containerPort: 80
+          name: http
+        livenessProbe:
+          tcpSocket:
+            port: http
+        readinessProbe:
+          tcpSocket:
+            port: http
+      affinity:
+        # ensure pods land on separate hosts
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values: [chord-server]
+            topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chord-server
+  namespace: chord
+spec:
+  selector:
+    app.kubernetes.io/name: chord-server
+  type: LoadBalancer
+---
+# TODO: TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: chord
+  annotations:
+    kubernetes.io/ingress.class: alb
+spec:
+  rules:
+  - http:
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+      backend:
+        service:
+          name: chord
+          port: entry

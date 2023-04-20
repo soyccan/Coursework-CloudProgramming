@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: chord
+  namespace: chord
+spec:
+  selector:
+    app.kubernetes.io/name: chord
+  clusterIP: None  # headless

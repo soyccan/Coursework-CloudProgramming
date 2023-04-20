@@ -32,7 +32,15 @@ export HOSTNAME_SUBDOMAIN='hostname: leader
 export LEADER_ENV='- { name: LEADER, value: "true" }'
 envsubst < chord.yaml > .gen/chord-leader.yaml
 
-# apply
+# AWS Load Balancer Controller
+helm repo add eks https://aws.github.io/eks-charts
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+  -n kube-system \
+  --set clusterName=chord \
+  --set serviceAccount.create=false \
+  --set serviceAccount.name=aws-load-balancer-controller
+
+# apply chord app & service
 kubectl apply -f .gen/chord.yaml
 kubectl apply -f .gen/chord-leader.yaml
 kubectl apply -f chord-svc.yaml
